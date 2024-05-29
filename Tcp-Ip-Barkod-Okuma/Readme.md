@@ -1,1 +1,1 @@
-Bu projede endüstriyel barkod okuyuculardan tcp-ip ile barkod nasıl okunur onu anlattım.
+In this project, I explained how to read barcodes from industrial barcode readers with C# and TCP-IP.
