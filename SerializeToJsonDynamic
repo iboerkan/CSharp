@@ -1,0 +1,89 @@
+/// <summary>
+        /// Method'a gönderilen classı json'a dönüştürür, iç içe class mevcutsa onları dahil eder
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static string SerializeToJsonDynamic(object data)
+        {
+            if (data == null)
+                return "{}";
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append("{");
+
+            Type dataType = data.GetType();
+            PropertyInfo[] properties = dataType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            int fieldCount = 0;
+
+            foreach (PropertyInfo property in properties)
+            {
+                string key = property.Name;
+                object value = null;
+
+                try
+                {
+                    value = property.GetValue(data, null);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+
+
+                if (!property.PropertyType.IsPrimitive &&
+                    property.PropertyType != typeof(string) &&
+                    !property.PropertyType.IsArray)
+                {
+
+                    if (value == null)
+                    {
+
+                        try
+                        {
+                            value = Activator.CreateInstance(property.PropertyType);
+                        }
+                        catch
+                        {
+
+                            sb.Append("\"").Append(key).Append("\":null");
+                            fieldCount++;
+                            continue;
+                        }
+                    }
+
+
+
+                    if (fieldCount > 0) sb.Append(",");
+
+                    string innerJson = SerializeToJsonDynamic(value);
+                    sb.Append("\"").Append(key).Append("\":").Append(innerJson);
+
+                    fieldCount++;
+                    continue;
+                }
+
+             
+                string stringValue = "";
+
+                if (value != null)
+                {
+                    if (value is decimal || value is double || value is float)
+                    {
+                        stringValue = Convert.ToString(value, CultureInfo.InvariantCulture);
+                    }
+                    else
+                    {
+                        stringValue = value.ToString();
+                    }
+                }
+
+                if (fieldCount > 0) sb.Append(",");
+
+              
+                sb.Append("\"").Append(key).Append("\":\"").Append(stringValue).Append("\"");
+                fieldCount++;
+            }
+
+            sb.Append("}");
+            return sb.ToString();
+        }
